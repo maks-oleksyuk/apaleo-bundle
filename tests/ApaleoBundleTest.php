@@ -95,7 +95,7 @@ final class ApaleoBundleTest extends TestCase
         $extension = $bundle->getContainerExtension();
         self::assertNotNull($extension);
 
-        $builder = new ContainerBuilder(new ParameterBag(['kernel.debug' => $debug]));
+        $builder = new ContainerBuilder(new ParameterBag(['kernel.debug' => $debug, 'kernel.environment' => 'test']));
         $extension->load([$config], $builder);
 
         return $builder;
