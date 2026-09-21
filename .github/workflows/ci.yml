@@ -35,7 +35,7 @@ jobs:
           persist-credentials: false
 
       - name: '⚙️ Prepare environment'
-        uses: $/.github/actions/setup
+        uses: ./.github/actions/setup
 
       - name: '${{ matrix.command.name }} validate'
         run: task ${{ matrix.command.command }}
@@ -57,7 +57,7 @@ jobs:
           persist-credentials: false
 
       - name: '⚙️ Prepare environment'
-        uses: $/.github/actions/setup
+        uses: ./.github/actions/setup
         with:
           php: ${{ matrix.php }}
           prefer-lowest: ${{ matrix.deps == 'lowest' }}
