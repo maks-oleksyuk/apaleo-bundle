@@ -5,7 +5,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.4",
-        "oleksyuk/apaleo-php": "@dev",
+        "oleksyuk/apaleo-php": "dev-main",
         "symfony/config": "^8.0",
         "symfony/dependency-injection": "^8.0",
         "symfony/http-kernel": "^8.0"
@@ -30,11 +30,5 @@
     "prefer-stable": true,
     "config": {
         "sort-packages": true
-    },
-    "repositories": [
-        {
-            "type": "path",
-            "url": "../apaleo-php"
-        }
-    ]
+    }
 }
