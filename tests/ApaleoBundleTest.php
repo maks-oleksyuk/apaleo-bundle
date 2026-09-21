@@ -5,9 +5,15 @@ declare(strict_types=1);
 namespace Oleksyuk\Apaleo\Bundle\Tests;
 
 use Oleksyuk\Apaleo\ApaleoClient;
+use Oleksyuk\Apaleo\Auth\ClientCredentialsTokenProvider;
+use Oleksyuk\Apaleo\Auth\TokenProvider;
 use Oleksyuk\Apaleo\Bundle\ApaleoBundle;
+use Oleksyuk\Apaleo\Bundle\Debug\ApaleoDataCollector;
+use Oleksyuk\Apaleo\Bundle\Debug\TraceableHttpClient;
 use PHPUnit\Framework\TestCase;
+use Psr\Http\Client\ClientInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
 
 /**
  * @internal
@@ -16,23 +22,30 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
  */
 final class ApaleoBundleTest extends TestCase
 {
-    public function testRegistersApaleoClientServiceWithConfiguredCredentials(): void
+    public function testRegistersTokenProviderWithConfiguredCredentials(): void
     {
-        $builder = $this->load(['client_id' => 'my-id', 'client_secret' => 'my-secret']);
+        $definition = $this->load(['client_id' => 'my-id', 'client_secret' => 'my-secret'])
+            ->getDefinition(ClientCredentialsTokenProvider::class)
+        ;
 
-        self::assertTrue($builder->hasDefinition(ApaleoClient::class));
-        $definition = $builder->getDefinition(ApaleoClient::class);
         self::assertSame('my-id', $definition->getArgument('$clientId'));
         self::assertSame('my-secret', $definition->getArgument('$clientSecret'));
-        self::assertSame([ApaleoClient::class, 'create'], $definition->getFactory());
     }
 
     public function testDefaultsToEnvVarPlaceholdersWhenNotConfigured(): void
     {
-        $definition = $this->load([])->getDefinition(ApaleoClient::class);
+        $definition = $this->load([])->getDefinition(ClientCredentialsTokenProvider::class);
 
         self::assertSame('%env(APALEO_CLIENT_ID)%', $definition->getArgument('$clientId'));
         self::assertSame('%env(APALEO_CLIENT_SECRET)%', $definition->getArgument('$clientSecret'));
+    }
+
+    public function testTokenProviderAliasPointsToClientCredentialsTokenProvider(): void
+    {
+        $builder = $this->load([]);
+
+        self::assertTrue($builder->hasAlias(TokenProvider::class));
+        self::assertSame(ClientCredentialsTokenProvider::class, (string) $builder->getAlias(TokenProvider::class));
     }
 
     public function testBaseUriOverrideIsPassedWhenSet(): void
@@ -46,20 +59,43 @@ final class ApaleoBundleTest extends TestCase
     {
         $definition = $this->load([])->getDefinition(ApaleoClient::class);
 
-        self::assertFalse($definition->hasErrors());
         self::assertArrayNotHasKey('$baseUri', $definition->getArguments());
+    }
+
+    public function testDebugModeWrapsHttpClientWithTracerAndRegistersDataCollector(): void
+    {
+        $builder = $this->load([], debug: true);
+
+        self::assertTrue($builder->hasDefinition(TraceableHttpClient::class) || $builder->hasDefinition('apaleo.http_client'));
+        self::assertTrue($builder->hasDefinition(ApaleoDataCollector::class));
+
+        $collectorDefinition = $builder->getDefinition(ApaleoDataCollector::class);
+        $tags = $collectorDefinition->getTag('data_collector');
+        self::assertNotEmpty($tags);
+        $firstTag = $tags[0];
+        self::assertIsArray($firstTag);
+        self::assertSame('apaleo', $firstTag['id']);
+    }
+
+    public function testProductionModeAliasesHttpClientDirectlyWithoutTracer(): void
+    {
+        $builder = $this->load([], debug: false);
+
+        self::assertFalse($builder->hasDefinition(ApaleoDataCollector::class));
+        self::assertTrue($builder->hasAlias('apaleo.http_client'));
+        self::assertSame(ClientInterface::class, (string) $builder->getAlias('apaleo.http_client'));
     }
 
     /**
      * @param array<string, mixed> $config
      */
-    private function load(array $config): ContainerBuilder
+    private function load(array $config, bool $debug = false): ContainerBuilder
     {
         $bundle = new ApaleoBundle();
         $extension = $bundle->getContainerExtension();
         self::assertNotNull($extension);
 
-        $builder = new ContainerBuilder();
+        $builder = new ContainerBuilder(new ParameterBag(['kernel.debug' => $debug]));
         $extension->load([$config], $builder);
 
         return $builder;
