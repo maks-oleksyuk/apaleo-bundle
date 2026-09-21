@@ -1,0 +1,40 @@
+{
+    "name": "oleksyuk/apaleo-bundle",
+    "description": "Symfony bundle for integrating the Apaleo hotel PMS API SDK",
+    "type": "symfony-bundle",
+    "license": "MIT",
+    "require": {
+        "php": "^8.4",
+        "oleksyuk/apaleo-php": "@dev",
+        "symfony/config": "^8.0",
+        "symfony/dependency-injection": "^8.0",
+        "symfony/http-kernel": "^8.0"
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.95.26",
+        "phpstan/phpstan": "^2.2.14",
+        "phpunit/phpunit": "^13.3.4",
+        "rector/rector": "^2.6.7"
+    },
+    "autoload": {
+        "psr-4": {
+            "Oleksyuk\\Apaleo\\Bundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Oleksyuk\\Apaleo\\Bundle\\Tests\\": "tests/"
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "config": {
+        "sort-packages": true
+    },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../apaleo-php"
+        }
+    ]
+}
