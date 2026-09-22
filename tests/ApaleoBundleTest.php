@@ -6,14 +6,15 @@ namespace Oleksyuk\Apaleo\Bundle\Tests;
 
 use Oleksyuk\Apaleo\ApaleoClient;
 use Oleksyuk\Apaleo\Auth\ClientCredentialsTokenProvider;
+use Oleksyuk\Apaleo\Auth\Psr16TokenCache;
 use Oleksyuk\Apaleo\Auth\TokenProvider;
 use Oleksyuk\Apaleo\Bundle\ApaleoBundle;
-use Oleksyuk\Apaleo\Bundle\Debug\ApaleoDataCollector;
-use Oleksyuk\Apaleo\Bundle\Debug\TraceableHttpClient;
 use PHPUnit\Framework\TestCase;
-use Psr\Http\Client\ClientInterface;
+use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
+use Symfony\Component\DependencyInjection\Reference;
 
 /**
  * @internal
@@ -61,40 +62,54 @@ final class ApaleoBundleTest extends TestCase
         self::assertArrayNotHasKey('$baseUri', $definition->getArguments());
     }
 
-    public function testDebugModeWrapsHttpClientWithTracerAndRegistersDataCollector(): void
+    public function testTokenCacheDefaultsToCacheAppWithFrameworkBundle(): void
     {
-        $builder = $this->load([], debug: true);
+        $builder = $this->load([], withFrameworkBundle: true);
 
-        self::assertTrue($builder->hasDefinition(TraceableHttpClient::class) || $builder->hasDefinition('apaleo.http_client'));
-        self::assertTrue($builder->hasDefinition(ApaleoDataCollector::class));
-
-        $collectorDefinition = $builder->getDefinition(ApaleoDataCollector::class);
-        $tags = $collectorDefinition->getTag('data_collector');
-        self::assertNotEmpty($tags);
-        $firstTag = $tags[0];
-        self::assertIsArray($firstTag);
-        self::assertSame('apaleo', $firstTag['id']);
+        self::assertSame('cache.app', $this->tokenCachePool($builder));
     }
 
-    public function testProductionModeAliasesHttpClientDirectlyWithoutTracer(): void
+    public function testTokenCacheIsInMemoryWithoutFrameworkBundle(): void
     {
-        $builder = $this->load([], debug: false);
+        $builder = $this->load([]);
 
-        self::assertFalse($builder->hasDefinition(ApaleoDataCollector::class));
-        self::assertTrue($builder->hasAlias('apaleo.http_client'));
-        self::assertSame(ClientInterface::class, (string) $builder->getAlias('apaleo.http_client'));
+        self::assertFalse($builder->hasDefinition(Psr16TokenCache::class));
+        self::assertArrayNotHasKey('$cache', $builder->getDefinition(ClientCredentialsTokenProvider::class)->getArguments());
+    }
+
+    public function testTokenCacheUsesConfiguredPool(): void
+    {
+        self::assertSame('cache.redis', $this->tokenCachePool($this->load(['token_cache' => 'cache.redis'])));
+    }
+
+    private function tokenCachePool(ContainerBuilder $builder): string
+    {
+        $cache = $builder->getDefinition(ClientCredentialsTokenProvider::class)->getArgument('$cache');
+        self::assertInstanceOf(Reference::class, $cache);
+        self::assertSame(Psr16TokenCache::class, (string) $cache);
+
+        $psr16 = $builder->getDefinition(Psr16TokenCache::class)->getArgument('$cache');
+        self::assertInstanceOf(Definition::class, $psr16);
+        $pool = $psr16->getArgument(0);
+        self::assertInstanceOf(Reference::class, $pool);
+
+        return (string) $pool;
     }
 
     /**
      * @param array<string, mixed> $config
      */
-    private function load(array $config, bool $debug = false): ContainerBuilder
+    private function load(array $config, bool $withFrameworkBundle = false): ContainerBuilder
     {
         $bundle = new ApaleoBundle();
         $extension = $bundle->getContainerExtension();
         self::assertNotNull($extension);
 
-        $builder = new ContainerBuilder(new ParameterBag(['kernel.debug' => $debug, 'kernel.environment' => 'test']));
+        $builder = new ContainerBuilder(new ParameterBag([
+            'kernel.debug' => false,
+            'kernel.environment' => 'test',
+            'kernel.bundles' => $withFrameworkBundle ? ['FrameworkBundle' => FrameworkBundle::class] : [],
+        ]));
         $extension->load([$config], $builder);
 
         return $builder;

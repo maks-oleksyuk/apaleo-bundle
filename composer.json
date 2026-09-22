@@ -28,7 +28,6 @@
         "php": "^8.4",
         "nyholm/psr7": "^1.8.2",
         "oleksyuk/apaleo-php": "dev-main",
-        "php-http/discovery": "^1.20",
         "symfony/cache": "^8.0",
         "symfony/config": "^8.0",
         "symfony/dependency-injection": "^8.0",
@@ -39,7 +38,11 @@
         "friendsofphp/php-cs-fixer": "^3.95.27",
         "phpstan/phpstan": "^2.2.14",
         "phpunit/phpunit": "^13.3.4",
-        "rector/rector": "^2.6.7"
+        "rector/rector": "^2.6.7",
+        "symfony/framework-bundle": "^8.0"
+    },
+    "suggest": {
+        "symfony/framework-bundle": "Profiler HTTP Client panel for Apaleo calls, framework.yaml overrides for its HTTP client, and cache.app as the default token cache"
     },
     "minimum-stability": "stable",
     "prefer-stable": true,

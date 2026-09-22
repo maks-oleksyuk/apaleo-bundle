@@ -43,7 +43,10 @@ apaleo:
     client_id: '%env(APALEO_CLIENT_ID)%'
     client_secret: '%env(APALEO_CLIENT_SECRET)%'
     # base_uri: 'https://api.sandbox.apaleo.com' # optional, defaults to https://api.apaleo.com
+    # token_cache: cache.redis # optional PSR-6 pool for the access token, defaults to cache.app
 ```
+
+FrameworkBundle is optional. Without it, the bundle still wires its own HTTP client with the same timeout and retries, but the access token is cached in memory only (a new token per PHP-FPM request) unless `token_cache` points at a pool.
 
 Run `bin/console config:dump-reference apaleo` at any time to see the full, current config tree.
 
@@ -69,9 +72,19 @@ final class PropertyController
 
 See the [`apaleo-php` README](//github.com/maks-oleksyuk/apaleo-php) for the full SDK API (Inventory resources, pagination, filters, exceptions).
 
-## Debug toolbar
+## HTTP client, timeouts and retries
 
-In `dev`/`debug` environments, every HTTP call the SDK makes (including the identity-server token request) is traced and shown in a dedicated "Apaleo" panel in the Symfony WebProfiler toolbar — method, URI, status code, and duration. No wiring needed; it's on automatically whenever `kernel.debug` is `true`, and adds zero overhead in `prod`.
+The bundle registers a scoped client, `apaleo.http_client`, for every call the SDK makes (API and identity server). It defaults to a 10 s timeout and 2 retries: `429` is always retried (honoring `Retry-After`), and `5xx`/transport errors only for `GET`/`HEAD`, because a `502` after a `POST` may still have been applied. With FrameworkBundle, these calls show up under `apaleo.http_client` in the profiler's **HTTP Client** panel, and you can override any option the usual way:
+
+```yaml
+# config/packages/framework.yaml
+framework:
+    http_client:
+        scoped_clients:
+            apaleo.http_client:
+                scope: '.*'
+                timeout: 30
+```
 
 ## Development
 
