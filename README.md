@@ -2,13 +2,13 @@
 
 # apaleo-bundle
 
-[![Latest Version](https://img.shields.io/packagist/v/oleksyuk/apaleo-bundle.svg?style=flat)](https://packagist.org/packages/oleksyuk/apaleo-bundle)
-[![CI](https://img.shields.io/github/actions/workflow/status/maks-oleksyuk/apaleo-bundle/ci.yml?branch=main&style=flat&label=CI)](https://github.com/maks-oleksyuk/apaleo-bundle/actions/workflows/ci.yml)
+[![CI](https://img.shields.io/github/actions/workflow/status/maks-oleksyuk/apaleo-bundle/ci.yml?branch=main&style=flat&label=CI)](//github.com/maks-oleksyuk/apaleo-bundle/actions/workflows/ci.yml)
+[![Latest Version](https://img.shields.io/packagist/v/oleksyuk/apaleo-bundle.svg?style=flat&logo=packagist&logoColor=white&color=F28D1A)](//packagist.org/packages/oleksyuk/apaleo-bundle)
 [![PHP Version](https://img.shields.io/badge/PHP-8.4%2B-777bb4?style=flat&logo=php&logoColor=white)](composer.json)
 [![Symfony](https://img.shields.io/badge/Symfony-8.0-000000?style=flat&logo=symfony&logoColor=white)](composer.json)
-[![Total Downloads](https://img.shields.io/packagist/dt/oleksyuk/apaleo-bundle.svg?style=flat)](https://packagist.org/packages/oleksyuk/apaleo-bundle/stats)
+[![Total Downloads](https://img.shields.io/packagist/dt/oleksyuk/apaleo-bundle.svg?style=flat&logo=packagist&logoColor=white&color=F28D1A)](//packagist.org/packages/oleksyuk/apaleo-bundle/stats)
 
-Symfony bundle for [`apaleo-php`](https://github.com/maks-oleksyuk/apaleo-php) — the framework-agnostic PHP SDK for the [Apaleo](https://apaleo.com) hotel PMS API.
+Symfony bundle for [`apaleo-php`](//github.com/maks-oleksyuk/apaleo-php) — the framework-agnostic PHP SDK for the [Apaleo](//apaleo.com) hotel PMS API.
 
 </div>
 
@@ -67,7 +67,7 @@ final class PropertyController
 }
 ```
 
-See the [`apaleo-php` README](https://github.com/maks-oleksyuk/apaleo-php) for the full SDK API (Inventory resources, pagination, filters, exceptions).
+See the [`apaleo-php` README](//github.com/maks-oleksyuk/apaleo-php) for the full SDK API (Inventory resources, pagination, filters, exceptions).
 
 ## Debug toolbar
 
