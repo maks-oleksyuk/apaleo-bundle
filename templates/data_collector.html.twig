@@ -3,8 +3,8 @@
 {% block toolbar %}
     {% if collector.callcount > 0 %}
         {% set icon %}
+            {{ source('@Apaleo/Icon/apaleo.svg') }}
             <span class="sf-toolbar-value">{{ collector.callcount }}</span>
-            <span class="sf-toolbar-label">Apaleo</span>
         {% endset %}
 
         {% set text %}
@@ -23,7 +23,10 @@
 {% endblock %}
 
 {% block menu %}
-    <span class="label">
+    <span class="label {{ collector.callcount == 0 ? 'disabled' }}">
+        <span class="icon" aria-hidden="true">
+            {{ source('@Apaleo/Icon/apaleo.svg') }}
+        </span>
         <strong>Apaleo</strong>
         {% if collector.callcount > 0 %}
             <span class="count">

@@ -1,6 +1,16 @@
+<div align="center">
+
 # apaleo-bundle
 
+[![Latest Version](https://img.shields.io/packagist/v/oleksyuk/apaleo-bundle.svg?style=flat)](https://packagist.org/packages/oleksyuk/apaleo-bundle)
+[![CI](https://img.shields.io/github/actions/workflow/status/maks-oleksyuk/apaleo-bundle/ci.yml?branch=main&style=flat&label=CI)](https://github.com/maks-oleksyuk/apaleo-bundle/actions/workflows/ci.yml)
+[![PHP Version](https://img.shields.io/badge/PHP-8.4%2B-777bb4?style=flat&logo=php&logoColor=white)](composer.json)
+[![Symfony](https://img.shields.io/badge/Symfony-8.0-000000?style=flat&logo=symfony&logoColor=white)](composer.json)
+[![Total Downloads](https://img.shields.io/packagist/dt/oleksyuk/apaleo-bundle.svg?style=flat)](https://packagist.org/packages/oleksyuk/apaleo-bundle/stats)
+
 Symfony bundle for [`apaleo-php`](https://github.com/maks-oleksyuk/apaleo-php) — the framework-agnostic PHP SDK for the [Apaleo](https://apaleo.com) hotel PMS API.
+
+</div>
 
 ## Installation
 
