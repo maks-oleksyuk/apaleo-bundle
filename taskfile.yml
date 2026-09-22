@@ -20,12 +20,6 @@ tasks:
     internal: true
     silent: true
 
-  phpunit:
-    desc: 'Runs `phpunit` command.'
-    aliases: [unit]
-    cmd: '{{.PHP_BIN}} {{.COMPOSER_BIN_DIR}}/phpunit {{.CLI_ARGS}} --colors=always'
-    silent: true
-
   php-cs-fixer:
     desc: 'Runs `php-cs-fixer` command.'
     aliases: [csf, cs-fixer]
@@ -44,14 +38,20 @@ tasks:
     cmd: '{{.PHP_BIN}} {{.COMPOSER_BIN_DIR}}/rector {{.CLI_ARGS}} --ansi'
     silent: true
 
+  phpunit:
+    desc: 'Runs `phpunit` command.'
+    aliases: [ unit ]
+    cmd: '{{.PHP_BIN}} {{.COMPOSER_BIN_DIR}}/phpunit {{.CLI_ARGS}} --colors=always'
+    silent: true
+
   # Linters:
 
   lint:
     desc: 'Run all linters.'
     aliases: [l]
     cmds:
-      - defer: { task: lint:rector }
       - defer: { task: lint:phpstan }
+      - defer: { task: lint:rector }
       - defer: { task: lint:php-cs-fixer }
       - defer: { task: lint:composer }
 
