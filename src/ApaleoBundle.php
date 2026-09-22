@@ -34,6 +34,10 @@ final class ApaleoBundle extends AbstractBundle
 
     private const string PSR17_FACTORY_SERVICE_ID = 'apaleo.psr17_factory';
 
+    private const string TOKEN_PROVIDER_SERVICE_ID = 'apaleo.token_provider';
+
+    private const string TOKEN_CACHE_SERVICE_ID = 'apaleo.token_cache';
+
     private const string PSR6_CACHE_SERVICE_ID = 'cache.app';
 
     private const int TIMEOUT = 10;
@@ -126,7 +130,7 @@ final class ApaleoBundle extends AbstractBundle
                 new Reference(self::PSR17_FACTORY_SERVICE_ID),
             ]);
 
-        $tokenProvider = $builder->register(ClientCredentialsTokenProvider::class, ClientCredentialsTokenProvider::class)
+        $tokenProvider = $builder->register(self::TOKEN_PROVIDER_SERVICE_ID, ClientCredentialsTokenProvider::class)
             ->setArgument('$httpClient', new Reference(self::PSR18_CLIENT_SERVICE_ID))
             ->setArgument('$requestFactory', new Reference(self::PSR17_FACTORY_SERVICE_ID))
             ->setArgument('$streamFactory', new Reference(self::PSR17_FACTORY_SERVICE_ID))
@@ -137,12 +141,12 @@ final class ApaleoBundle extends AbstractBundle
         // InMemoryTokenCache starts empty on every PHP-FPM request.
         $tokenCachePool = $config['token_cache'] ?? ($hasFrameworkBundle ? self::PSR6_CACHE_SERVICE_ID : null);
         if (\is_string($tokenCachePool)) {
-            $builder->register(Psr16TokenCache::class, Psr16TokenCache::class)
+            $builder->register(self::TOKEN_CACHE_SERVICE_ID, Psr16TokenCache::class)
                 ->setArgument('$cache', new Definition(Psr16Cache::class, [new Reference($tokenCachePool)]));
-            $tokenProvider->setArgument('$cache', new Reference(Psr16TokenCache::class));
+            $tokenProvider->setArgument('$cache', new Reference(self::TOKEN_CACHE_SERVICE_ID));
         }
 
-        $builder->setAlias(TokenProvider::class, ClientCredentialsTokenProvider::class);
+        $builder->setAlias(TokenProvider::class, self::TOKEN_PROVIDER_SERVICE_ID);
 
         $apaleoClient = $builder->register(ApaleoClient::class, ApaleoClient::class)
             ->setArgument('$httpClient', new Reference(self::PSR18_CLIENT_SERVICE_ID))

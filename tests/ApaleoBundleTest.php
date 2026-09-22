@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace Oleksyuk\Apaleo\Bundle\Tests;
 
 use Oleksyuk\Apaleo\ApaleoClient;
-use Oleksyuk\Apaleo\Auth\ClientCredentialsTokenProvider;
-use Oleksyuk\Apaleo\Auth\Psr16TokenCache;
 use Oleksyuk\Apaleo\Auth\TokenProvider;
 use Oleksyuk\Apaleo\Bundle\ApaleoBundle;
 use PHPUnit\Framework\TestCase;
@@ -26,7 +24,7 @@ final class ApaleoBundleTest extends TestCase
     public function testRegistersTokenProviderWithConfiguredCredentials(): void
     {
         $definition = $this->load(['client_id' => 'my-id', 'client_secret' => 'my-secret'])
-            ->getDefinition(ClientCredentialsTokenProvider::class);
+            ->getDefinition('apaleo.token_provider');
 
         self::assertSame('my-id', $definition->getArgument('$clientId'));
         self::assertSame('my-secret', $definition->getArgument('$clientSecret'));
@@ -34,7 +32,7 @@ final class ApaleoBundleTest extends TestCase
 
     public function testDefaultsToEnvVarPlaceholdersWhenNotConfigured(): void
     {
-        $definition = $this->load([])->getDefinition(ClientCredentialsTokenProvider::class);
+        $definition = $this->load([])->getDefinition('apaleo.token_provider');
 
         self::assertSame('%env(APALEO_CLIENT_ID)%', $definition->getArgument('$clientId'));
         self::assertSame('%env(APALEO_CLIENT_SECRET)%', $definition->getArgument('$clientSecret'));
@@ -45,7 +43,7 @@ final class ApaleoBundleTest extends TestCase
         $builder = $this->load([]);
 
         self::assertTrue($builder->hasAlias(TokenProvider::class));
-        self::assertSame(ClientCredentialsTokenProvider::class, (string) $builder->getAlias(TokenProvider::class));
+        self::assertSame('apaleo.token_provider', (string) $builder->getAlias(TokenProvider::class));
     }
 
     public function testBaseUriOverrideIsPassedWhenSet(): void
@@ -73,8 +71,8 @@ final class ApaleoBundleTest extends TestCase
     {
         $builder = $this->load([]);
 
-        self::assertFalse($builder->hasDefinition(Psr16TokenCache::class));
-        self::assertArrayNotHasKey('$cache', $builder->getDefinition(ClientCredentialsTokenProvider::class)->getArguments());
+        self::assertFalse($builder->hasDefinition('apaleo.token_cache'));
+        self::assertArrayNotHasKey('$cache', $builder->getDefinition('apaleo.token_provider')->getArguments());
     }
 
     public function testTokenCacheUsesConfiguredPool(): void
@@ -84,11 +82,11 @@ final class ApaleoBundleTest extends TestCase
 
     private function tokenCachePool(ContainerBuilder $builder): string
     {
-        $cache = $builder->getDefinition(ClientCredentialsTokenProvider::class)->getArgument('$cache');
+        $cache = $builder->getDefinition('apaleo.token_provider')->getArgument('$cache');
         self::assertInstanceOf(Reference::class, $cache);
-        self::assertSame(Psr16TokenCache::class, (string) $cache);
+        self::assertSame('apaleo.token_cache', (string) $cache);
 
-        $psr16 = $builder->getDefinition(Psr16TokenCache::class)->getArgument('$cache');
+        $psr16 = $builder->getDefinition('apaleo.token_cache')->getArgument('$cache');
         self::assertInstanceOf(Definition::class, $psr16);
         $pool = $psr16->getArgument(0);
         self::assertInstanceOf(Reference::class, $pool);
