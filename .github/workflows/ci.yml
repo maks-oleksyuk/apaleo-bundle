@@ -2,9 +2,11 @@ name: '🔄 CI'
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
   pull_request:
-    branches: [main]
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
@@ -35,13 +37,15 @@ jobs:
           persist-credentials: false
 
       - name: '⚙️ Prepare environment'
-        uses: ./.github/actions/setup
+        uses: ./.github/actions/setup # zizmor: ignore[self-repository] -- conflicts with .gitattributes export-ignore
 
       - name: '${{ matrix.command.name }} validate'
-        run: task ${{ matrix.command.command }}
+        run: eval "task ${COMMAND}"
+        env:
+          COMMAND: ${{ matrix.command.command }}
 
   test:
-    name: '♻️ Test | PHP ${{ matrix.php }} | ${{ matrix.deps }} deps'
+    name: "♻️ Test | PHP ${{ matrix.php }} ${{ matrix.deps == 'highest' && '↑' || '↓' }}"
     runs-on: ubuntu-latest
 
     strategy:
@@ -57,7 +61,7 @@ jobs:
           persist-credentials: false
 
       - name: '⚙️ Prepare environment'
-        uses: ./.github/actions/setup
+        uses: ./.github/actions/setup # zizmor: ignore[self-repository] -- conflicts with .gitattributes export-ignore
         with:
           php: ${{ matrix.php }}
           prefer-lowest: ${{ matrix.deps == 'lowest' }}

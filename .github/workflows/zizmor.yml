@@ -1,8 +1,9 @@
-name: '🔐 Security | zizmor'
+name: '🔐 Security | 🌈 zizmor'
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
     paths:
       - '.github/actions/**'
       - '.github/workflows/**'
@@ -24,7 +25,7 @@ jobs:
     name: '🔍 Scan GitHub Actions'
     runs-on: ubuntu-latest
     permissions:
-      security-events: write
+      security-events: write # required by zizmor-action to upload its SARIF results to the code scanning tab
 
     steps:
       - name: '🛎 Checkout'
