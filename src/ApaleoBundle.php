@@ -6,13 +6,16 @@ namespace Oleksyuk\Apaleo\Bundle;
 
 use Oleksyuk\Apaleo\ApaleoClient;
 use Oleksyuk\Apaleo\Auth\ClientCredentialsTokenProvider;
+use Oleksyuk\Apaleo\Auth\Psr16TokenCache;
 use Oleksyuk\Apaleo\Auth\TokenProvider;
 use Oleksyuk\Apaleo\Bundle\Debug\ApaleoDataCollector;
 use Oleksyuk\Apaleo\Bundle\Debug\ApaleoHttpClientTracer;
 use Oleksyuk\Apaleo\Bundle\Debug\TraceableHttpClient;
+use Http\Discovery\Psr17FactoryDiscovery;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\StreamFactoryInterface;
+use Symfony\Component\Cache\Psr16Cache;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
@@ -62,13 +65,39 @@ final class ApaleoBundle extends AbstractBundle
             $builder->setAlias(self::HTTP_CLIENT_SERVICE_ID, ClientInterface::class);
         }
 
-        $builder->register(ClientCredentialsTokenProvider::class, ClientCredentialsTokenProvider::class)
+        if (!$builder->has(RequestFactoryInterface::class)) {
+            $builder->register(RequestFactoryInterface::class, RequestFactoryInterface::class)
+                ->setFactory([Psr17FactoryDiscovery::class, 'findRequestFactory']);
+        }
+
+        if (!$builder->has(StreamFactoryInterface::class)) {
+            $builder->register(StreamFactoryInterface::class, StreamFactoryInterface::class)
+                ->setFactory([Psr17FactoryDiscovery::class, 'findStreamFactory']);
+        }
+
+        $tokenProviderDefinition = $builder->register(ClientCredentialsTokenProvider::class, ClientCredentialsTokenProvider::class)
             ->setArgument('$httpClient', new Reference(self::HTTP_CLIENT_SERVICE_ID))
             ->setArgument('$requestFactory', new Reference(RequestFactoryInterface::class))
             ->setArgument('$streamFactory', new Reference(StreamFactoryInterface::class))
             ->setArgument('$clientId', $config['client_id'])
             ->setArgument('$clientSecret', $config['client_secret'])
         ;
+
+        // Persist the access token across requests so it survives past the PHP-FPM request
+        // lifetime instead of falling back to ClientCredentialsTokenProvider's default
+        // InMemoryTokenCache, which fetches a fresh token on every page load. Referencing
+        // 'cache.app' (registered by FrameworkBundle) resolves fine regardless of bundle
+        // load order, since references are only resolved once the container is compiled.
+        $builder->register(Psr16Cache::class, Psr16Cache::class)
+            ->setArgument('$pool', new Reference('cache.app'))
+        ;
+
+        $builder->register(Psr16TokenCache::class, Psr16TokenCache::class)
+            ->setArgument('$cache', new Reference(Psr16Cache::class))
+        ;
+
+        $tokenProviderDefinition->setArgument('$cache', new Reference(Psr16TokenCache::class));
+
         $builder->setAlias(TokenProvider::class, ClientCredentialsTokenProvider::class);
 
         $apaleoClient = $builder->register(ApaleoClient::class, ApaleoClient::class)
