@@ -18,6 +18,7 @@ return (new Config())
         'ordered_imports' => ['sort_algorithm' => 'alpha'],
         'no_unused_imports' => true,
         'concat_space' => ['spacing' => 'none'],
+        'multiline_whitespace_before_semicolons' => ['strategy' => 'no_multi_line'],
         'single_line_empty_body' => true,
         'trailing_comma_in_multiline' => ['elements' => ['arguments', 'array_destructuring', 'arrays', 'match', 'parameters']],
         'phpdoc_align' => false,

@@ -25,8 +25,7 @@ final class ApaleoBundleTest extends TestCase
     public function testRegistersTokenProviderWithConfiguredCredentials(): void
     {
         $definition = $this->load(['client_id' => 'my-id', 'client_secret' => 'my-secret'])
-            ->getDefinition(ClientCredentialsTokenProvider::class)
-        ;
+            ->getDefinition(ClientCredentialsTokenProvider::class);
 
         self::assertSame('my-id', $definition->getArgument('$clientId'));
         self::assertSame('my-secret', $definition->getArgument('$clientSecret'));
