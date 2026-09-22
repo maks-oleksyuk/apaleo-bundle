@@ -66,6 +66,7 @@ final class ApaleoBundle extends AbstractBundle
             ->scalarNode('client_id')->defaultValue('%env(APALEO_CLIENT_ID)%')->end()
             ->scalarNode('client_secret')->defaultValue('%env(APALEO_CLIENT_SECRET)%')->end()
             ->scalarNode('base_uri')->defaultNull()->end()
+            ->scalarNode('identity_base_uri')->info('Identity server for OAuth tokens, e.g. a mock server or proxy. Default: https://identity.apaleo.com')->defaultNull()->end()
             ->scalarNode('token_cache')
             ->info('PSR-6 cache pool service ID for the access token. Default: "cache.app" with FrameworkBundle, otherwise in-memory (a new token per PHP-FPM request).')
             ->defaultNull()
@@ -144,6 +145,10 @@ final class ApaleoBundle extends AbstractBundle
             $builder->register(self::TOKEN_CACHE_SERVICE_ID, Psr16TokenCache::class)
                 ->setArgument('$cache', new Definition(Psr16Cache::class, [new Reference($tokenCachePool)]));
             $tokenProvider->setArgument('$cache', new Reference(self::TOKEN_CACHE_SERVICE_ID));
+        }
+
+        if (\is_string($config['identity_base_uri'] ?? null)) {
+            $tokenProvider->setArgument('$identityBaseUri', $config['identity_base_uri']);
         }
 
         $builder->setAlias(TokenProvider::class, self::TOKEN_PROVIDER_SERVICE_ID);

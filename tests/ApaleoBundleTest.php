@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Oleksyuk\Apaleo\Bundle\Tests;
 
 use Oleksyuk\Apaleo\ApaleoClient;
+use Oleksyuk\Apaleo\Auth\ClientCredentialsTokenProvider;
 use Oleksyuk\Apaleo\Auth\TokenProvider;
 use Oleksyuk\Apaleo\Bundle\ApaleoBundle;
 use PHPUnit\Framework\TestCase;
@@ -51,6 +52,14 @@ final class ApaleoBundleTest extends TestCase
         $definition = $this->load(['base_uri' => 'https://sandbox.apaleo.com'])->getDefinition(ApaleoClient::class);
 
         self::assertSame('https://sandbox.apaleo.com', $definition->getArgument('$baseUri'));
+    }
+
+    public function testIdentityBaseUriIsPassedToTheTokenProvider(): void
+    {
+        $definition = $this->load(['identity_base_uri' => 'http://mock-identity'])->getDefinition('apaleo.token_provider');
+
+        self::assertSame('http://mock-identity', $definition->getArgument('$identityBaseUri'));
+        self::assertSame(ClientCredentialsTokenProvider::class, $definition->getClass());
     }
 
     public function testBaseUriArgumentIsOmittedWhenNotSet(): void

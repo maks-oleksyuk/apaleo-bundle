@@ -44,6 +44,7 @@ apaleo:
     client_secret: '%env(APALEO_CLIENT_SECRET)%'
     # base_uri: 'https://api.sandbox.apaleo.com' # optional, defaults to https://api.apaleo.com
     # token_cache: cache.redis # optional PSR-6 pool for the access token, defaults to cache.app
+    # identity_base_uri: 'http://localhost:8080' # optional, defaults to https://identity.apaleo.com
 ```
 
 FrameworkBundle is optional. Without it, the bundle still wires its own HTTP client with the same timeout and retries, but the access token is cached in memory only (a new token per PHP-FPM request) unless `token_cache` points at a pool.
