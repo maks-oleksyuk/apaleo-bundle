@@ -87,6 +87,26 @@ framework:
                 timeout: 30
 ```
 
+The profiler records request headers, including the token request's `Authorization: Basic` header, which carries your client secret. Keep the profiler to your own machine: don't enable it on a shared environment that uses production credentials.
+
+## Token cache
+
+The access token lives about an hour. With FrameworkBundle it's cached in `cache.app`, so every PHP-FPM request reuses it instead of asking the identity server again. With several app servers, point `token_cache` at a shared pool so they share one token too:
+
+```yaml
+# config/packages/cache.yaml
+framework:
+    cache:
+        pools:
+            cache.apaleo:
+                adapter: cache.adapter.redis
+                provider: '%env(REDIS_URL)%'
+
+# config/packages/apaleo.yaml
+apaleo:
+    token_cache: cache.apaleo
+```
+
 ## Development
 
 This package has its own tooling, mirroring `apaleo-php`:
