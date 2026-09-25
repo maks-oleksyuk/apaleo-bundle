@@ -32,6 +32,7 @@
         "symfony/config": "^8.0",
         "symfony/dependency-injection": "^8.0",
         "symfony/http-client": "^8.0",
+        "symfony/http-client-contracts": "^3.0",
         "symfony/http-kernel": "^8.0"
     },
     "require-dev": {
