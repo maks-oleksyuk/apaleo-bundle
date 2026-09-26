@@ -75,7 +75,7 @@ See the [`apaleo-php` README](//github.com/maks-oleksyuk/apaleo-php) for the ful
 
 ## HTTP client, timeouts and retries
 
-The bundle registers a scoped client, `apaleo.http_client`, for every call the SDK makes (API and identity server). It defaults to a 10 s timeout and 2 retries: `429` is always retried (honoring `Retry-After`), and `5xx`/transport errors only for `GET`/`HEAD`, because a `502` after a `POST` may still have been applied. With FrameworkBundle, these calls show up under `apaleo.http_client` in the profiler's **HTTP Client** panel, and you can override any option the usual way:
+The bundle registers a scoped client, `apaleo.http_client`, for every call the SDK makes (API and identity server). It defaults to a 10 s timeout and 2 retries of `5xx`/transport errors, only for `GET`/`HEAD`, because a `502` after a `POST` may still have been applied. A `429` isn't retried: the HTTP client would sleep for whatever `Retry-After` says, uncapped, inside your web request. It surfaces as `ApaleoRateLimitException` with `retryAfterSeconds` instead, so you decide whether to wait (e.g. re-dispatch a Messenger message with a `DelayStamp`). With FrameworkBundle, these calls show up under `apaleo.http_client` in the profiler's **HTTP Client** panel, and you can override any option the usual way:
 
 ```yaml
 # config/packages/framework.yaml

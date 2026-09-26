@@ -8,6 +8,7 @@ use Oleksyuk\Apaleo\ApaleoClient;
 use Oleksyuk\Apaleo\Bundle\Tests\Fixtures\BareKernel;
 use Oleksyuk\Apaleo\Bundle\Tests\Fixtures\RecordingResponseFactory;
 use Oleksyuk\Apaleo\Bundle\Tests\Fixtures\TestKernel;
+use Oleksyuk\Apaleo\Exception\ApaleoRateLimitException;
 use Oleksyuk\Apaleo\Exception\ApaleoServerException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -96,6 +97,29 @@ final class ApaleoBundleKernelTest extends TestCase
         }
 
         self::assertCount(2, $responses->calls, 'a 503 after a write may still have been applied');
+    }
+
+    public function testDoesNotRetryOn429EvenForASafeRequest(): void
+    {
+        $container = $this->boot();
+        $responses = $this->responses($container);
+        $responses->reply(
+            new MockResponse('{"access_token":"t","expires_in":3600}'),
+            new MockResponse('{}', ['http_code' => 429, 'response_headers' => ['Retry-After: 0']]),
+            new MockResponse('{"count":0,"properties":[]}'),
+        );
+
+        $client = $container->get(ApaleoClient::class);
+        self::assertInstanceOf(ApaleoClient::class, $client);
+
+        try {
+            $client->inventory()->properties()->list();
+            self::fail('Expected ApaleoRateLimitException.');
+        } catch (ApaleoRateLimitException $apaleoRateLimitException) {
+            self::assertSame(0, $apaleoRateLimitException->retryAfterSeconds);
+        }
+
+        self::assertCount(2, $responses->calls, 'Retry-After is uncapped, so waiting is left to the caller');
     }
 
     private function boot(bool $debug = false): ContainerInterface

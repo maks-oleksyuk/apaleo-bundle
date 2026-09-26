@@ -47,10 +47,13 @@ final class ApaleoBundle extends AbstractBundle
     /** Only safe methods are retried on 5xx/transport errors: a 502 after a POST may still have booked. */
     private const array SAFE_METHODS = ['GET', 'HEAD'];
 
-    /** GenericRetryStrategy format: code => methods it's retried for, or a bare code for any method. */
+    /**
+     * GenericRetryStrategy format: code => methods it's retried for. 429 is left to the caller
+     * (ApaleoRateLimitException::$retryAfterSeconds): RetryableHttpClient would sleep for whatever
+     * Retry-After says, uncapped, holding a PHP-FPM worker for as long.
+     */
     private const array RETRY_STATUS_CODES = [
         0 => self::SAFE_METHODS,
-        429,
         500 => self::SAFE_METHODS,
         502 => self::SAFE_METHODS,
         503 => self::SAFE_METHODS,
@@ -84,22 +87,13 @@ final class ApaleoBundle extends AbstractBundle
             return;
         }
 
-        $httpCodes = [];
-        foreach (self::RETRY_STATUS_CODES as $code => $methods) {
-            if (\is_array($methods)) {
-                $httpCodes[$code] = $methods;
-            } else {
-                $httpCodes[$methods] = true;
-            }
-        }
-
         $builder->prependExtensionConfig('framework', [
             'http_client' => [
                 'scoped_clients' => [
                     self::HTTP_CLIENT_SERVICE_ID => [
                         'scope' => '.*',
                         'timeout' => self::TIMEOUT,
-                        'retry_failed' => ['max_retries' => self::MAX_RETRIES, 'http_codes' => $httpCodes],
+                        'retry_failed' => ['max_retries' => self::MAX_RETRIES, 'http_codes' => self::RETRY_STATUS_CODES],
                     ],
                 ],
             ],
