@@ -36,15 +36,24 @@ APALEO_CLIENT_ID=your-client-id
 APALEO_CLIENT_SECRET=your-client-secret
 ```
 
-These are the defaults the bundle reads (`%env(APALEO_CLIENT_ID)%` / `%env(APALEO_CLIENT_SECRET)%`). Override them, or set a custom base URI (e.g. a sandbox environment), via `config/packages/apaleo.yaml`:
+These are the defaults the bundle reads (`%env(APALEO_CLIENT_ID)%` / `%env(APALEO_CLIENT_SECRET)%`). Override them or set a custom base URI (e.g., a sandbox environment), via `config/packages/apaleo.php`:
 
-```yaml
-apaleo:
-    client_id: '%env(APALEO_CLIENT_ID)%'
-    client_secret: '%env(APALEO_CLIENT_SECRET)%'
-    # base_uri: 'https://api.sandbox.apaleo.com' # optional, defaults to https://api.apaleo.com
-    # token_cache: cache.redis # optional PSR-6 pool for the access token, defaults to cache.app
-    # identity_base_uri: 'http://localhost:8080' # optional, defaults to https://identity.apaleo.com
+```php
+<?php
+
+declare(strict_types=1);
+
+namespace Symfony\Component\DependencyInjection\Loader\Configurator;
+
+return App::config([
+    'apaleo' => [
+        'client_id' => env('APALEO_CLIENT_ID'),
+        'client_secret' => env('APALEO_CLIENT_SECRET'),
+        // 'base_uri' => 'https://api.sandbox.apaleo.com', // optional, defaults to https://api.apaleo.com
+        // 'token_cache' => 'cache.redis', // optional PSR-6 pool for the access token, defaults to cache.app
+        // 'identity_base_uri' => 'http://localhost:8080', // optional, defaults to https://identity.apaleo.com
+    ],
+]);
 ```
 
 FrameworkBundle is optional. Without it, the bundle still wires its own HTTP client with the same timeout and retries, but the access token is cached in memory only (a new token per PHP-FPM request) unless `token_cache` points at a pool.
@@ -58,9 +67,11 @@ Inject `ApaleoClient` like any other autowired service:
 ```php
 use Oleksyuk\Apaleo\ApaleoClient;
 
-final class PropertyController
+final readonly class PropertyController
 {
-    public function __construct(private readonly ApaleoClient $apaleo) {}
+    public function __construct(
+        private ApaleoClient $apaleo
+    ) {}
 
     public function list(): Response
     {
@@ -77,34 +88,72 @@ See the [`apaleo-php` README](//github.com/maks-oleksyuk/apaleo-php) for the ful
 
 The bundle registers a scoped client, `apaleo.http_client`, for every call the SDK makes (API and identity server). It defaults to a 10 s timeout and 2 retries of `5xx`/transport errors, only for `GET`/`HEAD`, because a `502` after a `POST` may still have been applied. A `429` isn't retried: the HTTP client would sleep for whatever `Retry-After` says, uncapped, inside your web request. It surfaces as `ApaleoRateLimitException` with `retryAfterSeconds` instead, so you decide whether to wait (e.g. re-dispatch a Messenger message with a `DelayStamp`). With FrameworkBundle, these calls show up under `apaleo.http_client` in the profiler's **HTTP Client** panel, and you can override any option the usual way:
 
-```yaml
-# config/packages/framework.yaml
-framework:
-    http_client:
-        scoped_clients:
-            apaleo.http_client:
-                scope: '.*'
-                timeout: 30
+```php
+<?php
+
+// config/packages/framework.php
+
+declare(strict_types=1);
+
+namespace Symfony\Component\DependencyInjection\Loader\Configurator;
+
+return App::config([
+    'framework' => [
+        'http_client' => [
+            'scoped_clients' => [
+                'apaleo.http_client' => [
+                    'scope' => '.*',
+                    'timeout' => 30,
+                ],
+            ],
+        ],
+    ],
+]);
 ```
 
-The profiler records request headers, including the token request's `Authorization: Basic` header, which carries your client secret. Keep the profiler to your own machine: don't enable it on a shared environment that uses production credentials.
+The profiler records request headers, including the token request's `Authorization: Basic` header, which carries your client secret. Keep the profiler on your own machine: don't enable it on a shared environment that uses production credentials.
 
 ## Token cache
 
 The access token lives about an hour. With FrameworkBundle it's cached in `cache.app`, so every PHP-FPM request reuses it instead of asking the identity server again. With several app servers, point `token_cache` at a shared pool so they share one token too:
 
-```yaml
-# config/packages/cache.yaml
-framework:
-    cache:
-        pools:
-            cache.apaleo:
-                adapter: cache.adapter.redis
-                provider: '%env(REDIS_URL)%'
+```php
+<?php
 
-# config/packages/apaleo.yaml
-apaleo:
-    token_cache: cache.apaleo
+// config/packages/cache.php
+
+declare(strict_types=1);
+
+namespace Symfony\Component\DependencyInjection\Loader\Configurator;
+
+return App::config([
+    'framework' => [
+        'cache' => [
+            'pools' => [
+                'cache.apaleo' => [
+                    'adapter' => 'cache.adapter.redis',
+                    'provider' => env('REDIS_URL'),
+                ],
+            ],
+        ],
+    ],
+]);
+```
+
+```php
+<?php
+
+// config/packages/apaleo.php
+
+declare(strict_types=1);
+
+namespace Symfony\Component\DependencyInjection\Loader\Configurator;
+
+return App::config([
+    'apaleo' => [
+        'token_cache' => 'cache.apaleo',
+    ],
+]);
 ```
 
 ## Development
