@@ -28,7 +28,7 @@
         "php": "^8.4",
         "nyholm/psr7": "^1.8.2",
         "oleksyuk/apaleo-php": "dev-main",
-        "symfony/cache": "^8.0",
+        "psr/cache": "^3.0",
         "symfony/config": "^8.0",
         "symfony/dependency-injection": "^8.0",
         "symfony/http-client": "^8.0",
@@ -40,6 +40,7 @@
         "phpstan/phpstan": "^2.2.14",
         "phpunit/phpunit": "^13.3.4",
         "rector/rector": "^2.6.7",
+        "symfony/cache": "^8.0",
         "symfony/framework-bundle": "^8.0"
     },
     "suggest": {
@@ -58,9 +59,6 @@
         }
     },
     "config": {
-        "allow-plugins": {
-            "php-http/discovery": true
-        },
         "sort-packages": true
     }
 }

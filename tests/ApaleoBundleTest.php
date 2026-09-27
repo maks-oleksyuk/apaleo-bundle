@@ -11,7 +11,6 @@ use Oleksyuk\Apaleo\Bundle\ApaleoBundle;
 use PHPUnit\Framework\TestCase;
 use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
 use Symfony\Component\DependencyInjection\Reference;
 
@@ -95,9 +94,7 @@ final class ApaleoBundleTest extends TestCase
         self::assertInstanceOf(Reference::class, $cache);
         self::assertSame('apaleo.token_cache', (string) $cache);
 
-        $psr16 = $builder->getDefinition('apaleo.token_cache')->getArgument('$cache');
-        self::assertInstanceOf(Definition::class, $psr16);
-        $pool = $psr16->getArgument(0);
+        $pool = $builder->getDefinition('apaleo.token_cache')->getArgument('$pool');
         self::assertInstanceOf(Reference::class, $pool);
 
         return (string) $pool;

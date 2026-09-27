@@ -7,9 +7,7 @@ namespace Oleksyuk\Apaleo\Bundle;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Oleksyuk\Apaleo\ApaleoClient;
 use Oleksyuk\Apaleo\Auth\ClientCredentialsTokenProvider;
-use Oleksyuk\Apaleo\Auth\Psr16TokenCache;
 use Oleksyuk\Apaleo\Auth\TokenProvider;
-use Symfony\Component\Cache\Psr16Cache;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
@@ -136,8 +134,8 @@ final class ApaleoBundle extends AbstractBundle
         // InMemoryTokenCache starts empty on every PHP-FPM request.
         $tokenCachePool = $config['token_cache'] ?? ($hasFrameworkBundle ? self::PSR6_CACHE_SERVICE_ID : null);
         if (\is_string($tokenCachePool)) {
-            $builder->register(self::TOKEN_CACHE_SERVICE_ID, Psr16TokenCache::class)
-                ->setArgument('$cache', new Definition(Psr16Cache::class, [new Reference($tokenCachePool)]));
+            $builder->register(self::TOKEN_CACHE_SERVICE_ID, Psr6TokenCache::class)
+                ->setArgument('$pool', new Reference($tokenCachePool));
             $tokenProvider->setArgument('$cache', new Reference(self::TOKEN_CACHE_SERVICE_ID));
         }
 
