@@ -6,7 +6,7 @@ namespace Oleksyuk\Apaleo\Bundle\Tests;
 
 use Oleksyuk\Apaleo\ApaleoClient;
 use Oleksyuk\Apaleo\Auth\ClientCredentialsTokenProvider;
-use Oleksyuk\Apaleo\Auth\TokenProvider;
+use Oleksyuk\Apaleo\Auth\TokenProviderInterface;
 use Oleksyuk\Apaleo\Bundle\ApaleoBundle;
 use PHPUnit\Framework\TestCase;
 use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
@@ -42,8 +42,8 @@ final class ApaleoBundleTest extends TestCase
     {
         $builder = $this->load([]);
 
-        self::assertTrue($builder->hasAlias(TokenProvider::class));
-        self::assertSame('apaleo.token_provider', (string) $builder->getAlias(TokenProvider::class));
+        self::assertTrue($builder->hasAlias(TokenProviderInterface::class));
+        self::assertSame('apaleo.token_provider', (string) $builder->getAlias(TokenProviderInterface::class));
     }
 
     public function testBaseUriOverrideIsPassedWhenSet(): void

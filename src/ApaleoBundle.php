@@ -7,7 +7,7 @@ namespace Oleksyuk\Apaleo\Bundle;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Oleksyuk\Apaleo\ApaleoClient;
 use Oleksyuk\Apaleo\Auth\ClientCredentialsTokenProvider;
-use Oleksyuk\Apaleo\Auth\TokenProvider;
+use Oleksyuk\Apaleo\Auth\TokenProviderInterface;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
@@ -143,13 +143,13 @@ final class ApaleoBundle extends AbstractBundle
             $tokenProvider->setArgument('$identityBaseUri', $config['identity_base_uri']);
         }
 
-        $builder->setAlias(TokenProvider::class, self::TOKEN_PROVIDER_SERVICE_ID);
+        $builder->setAlias(TokenProviderInterface::class, self::TOKEN_PROVIDER_SERVICE_ID);
 
         $apaleoClient = $builder->register(ApaleoClient::class, ApaleoClient::class)
             ->setArgument('$httpClient', new Reference(self::PSR18_CLIENT_SERVICE_ID))
             ->setArgument('$requestFactory', new Reference(self::PSR17_FACTORY_SERVICE_ID))
             ->setArgument('$streamFactory', new Reference(self::PSR17_FACTORY_SERVICE_ID))
-            ->setArgument('$tokenProvider', new Reference(TokenProvider::class))
+            ->setArgument('$tokenProvider', new Reference(TokenProviderInterface::class))
             ->setArgument('$asyncHttpClient', new Reference(self::HTTP_CLIENT_SERVICE_ID));
 
         if (\is_string($config['base_uri'] ?? null)) {

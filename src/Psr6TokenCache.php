@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace Oleksyuk\Apaleo\Bundle;
 
 use Oleksyuk\Apaleo\Auth\AccessToken;
-use Oleksyuk\Apaleo\Auth\TokenCache;
+use Oleksyuk\Apaleo\Auth\TokenCacheInterface;
 use Psr\Cache\CacheItemPoolInterface;
 
 /**
  * Keeps the access token in a PSR-6 pool (cache.app by default) until it expires, so PHP-FPM
  * requests share one token instead of each fetching its own.
  */
-final readonly class Psr6TokenCache implements TokenCache
+final readonly class Psr6TokenCache implements TokenCacheInterface
 {
     public function __construct(
         private CacheItemPoolInterface $pool,
